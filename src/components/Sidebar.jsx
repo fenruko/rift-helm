@@ -7,6 +7,7 @@ const NAV = [
   { to: "/economy", label: "Economy", permission: "economy.view" },
   { to: "/moderation", label: "Moderation", permission: "moderation.view" },
   { to: "/tickets", label: "Tickets & Reports", permission: "tickets.view" },
+  { to: "/appeals", label: "Ban Appeals", permission: "appeals.view" },
   { to: "/voice", label: "Voice", permission: "voice.view" },
   { to: "/verification", label: "Verification", permission: "verification.view" },
   { to: "/leaderboards", label: "Leaderboards", permission: "levels.view" },

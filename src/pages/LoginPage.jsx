@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AppealModal from "../components/AppealModal";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showAppeal, setShowAppeal] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -77,7 +79,17 @@ export default function LoginPage() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
+
+        <button
+          type="button"
+          onClick={() => setShowAppeal(true)}
+          className="w-full mt-4 text-center text-white/30 hover:text-white/60 text-xs"
+        >
+          Want to appeal a ban?
+        </button>
       </form>
+
+      {showAppeal && <AppealModal onClose={() => setShowAppeal(false)} />}
     </div>
   );
 }

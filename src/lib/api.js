@@ -58,6 +58,16 @@ export const api = {
   logout: () => request("/api/exec/logout", { method: "POST" }),
   me: () => request("/api/exec/me"),
 
+  // ban appeals -- submitAppeal is public (no session required)
+  submitAppeal: (payload) => request("/api/appeals/submit", { method: "POST", body: payload }),
+  listAppeals: (status) => request("/api/exec/appeals", { params: { status } }),
+  getAppeal: (id) => request(`/api/exec/appeals/${id}`),
+  claimAppeal: (id) => request(`/api/exec/appeals/${id}/claim`, { method: "POST" }),
+  unclaimAppeal: (id) => request(`/api/exec/appeals/${id}/unclaim`, { method: "POST" }),
+  messageAppeal: (id, text) => request(`/api/exec/appeals/${id}/message`, { method: "POST", body: { text } }),
+  resolveAppeal: (id, decision, note) =>
+    request(`/api/exec/appeals/${id}/resolve`, { method: "POST", body: { decision, note } }),
+
   // analytics
   overview: () => request("/api/exec/overview"),
   economy: (limit) => request("/api/exec/economy", { params: { limit } }),
