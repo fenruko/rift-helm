@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Rift Staff</title>
+    <script>
+      var path = location.pathname + location.search + location.hash;
+      sessionStorage.redirect = path;
+      location.replace(location.protocol + "//" + location.host + "/");
+    </script>
+  </head>
+  <body></body>
+</html>
