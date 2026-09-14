@@ -33,9 +33,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-panel flex items-center justify-center px-4">
-      <form onSubmit={submit} className="bg-surface border border-border rounded-2xl p-8 w-full max-w-sm">
-        <h1 className="text-white text-xl font-semibold mb-1">Rift Staff</h1>
+    <div className="min-h-screen bg-panel flex items-center justify-center px-4 relative overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.18]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage: "radial-gradient(ellipse at center, black 0%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 0%, transparent 75%)",
+        }}
+      />
+      <form onSubmit={submit} className="relative bg-surface border border-border rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-black/50">
+        <h1 className="text-white text-xl font-bold mb-1 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Rift Staff</h1>
         <p className="text-white/40 text-sm mb-6">Sign in to the executive dashboard.</p>
 
         <div className="mb-3">

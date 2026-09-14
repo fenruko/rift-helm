@@ -58,8 +58,19 @@ export const api = {
   logout: () => request("/api/exec/logout", { method: "POST" }),
   me: () => request("/api/exec/me"),
 
-  // ban appeals -- submitAppeal is public (no session required)
+  // ban appeals -- public flow is unauthenticated (ID verify -> OTP -> submit)
+  lookupAppealUser: (user_id) => request("/api/appeals/lookup", { method: "POST", body: { user_id } }),
+  sendAppealOtp: (user_id) => request("/api/appeals/send-otp", { method: "POST", body: { user_id } }),
+  verifyAppealOtp: (user_id, code) => request("/api/appeals/verify-otp", { method: "POST", body: { user_id, code } }),
+  uploadAppealImage: (verify_token, image) => request("/api/appeals/upload", { method: "POST", body: { verify_token, image } }),
   submitAppeal: (payload) => request("/api/appeals/submit", { method: "POST", body: payload }),
+
+  getAppealThread: (token) => request(`/api/appeals/thread/${token}`),
+  postAppealThreadMessage: (token, text, attachment_ids) =>
+    request(`/api/appeals/thread/${token}/message`, { method: "POST", body: { text, attachment_ids } }),
+  uploadThreadImage: (token, image) =>
+    request(`/api/appeals/thread/${token}/upload`, { method: "POST", body: { image } }),
+
   listAppeals: (status) => request("/api/exec/appeals", { params: { status } }),
   getAppeal: (id) => request(`/api/exec/appeals/${id}`),
   claimAppeal: (id) => request(`/api/exec/appeals/${id}/claim`, { method: "POST" }),
@@ -67,6 +78,12 @@ export const api = {
   messageAppeal: (id, text) => request(`/api/exec/appeals/${id}/message`, { method: "POST", body: { text } }),
   resolveAppeal: (id, decision, note) =>
     request(`/api/exec/appeals/${id}/resolve`, { method: "POST", body: { decision, note } }),
+  blacklistFromAppeal: (id, reason) => request(`/api/exec/appeals/${id}/blacklist`, { method: "POST", body: { reason } }),
+  unblacklistFromAppeal: (id) => request(`/api/exec/appeals/${id}/unblacklist`, { method: "POST" }),
+
+  listBlacklist: () => request("/api/exec/blacklist"),
+  addBlacklist: (user_id, reason) => request("/api/exec/blacklist", { method: "POST", body: { user_id, reason } }),
+  removeBlacklist: (user_id) => request(`/api/exec/blacklist/${user_id}`, { method: "DELETE" }),
 
   // analytics
   overview: () => request("/api/exec/overview"),

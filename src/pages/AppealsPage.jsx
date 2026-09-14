@@ -9,6 +9,14 @@ const TABS = [
   { key: "denied", label: "Denied", filterStatus: "denied" },
 ];
 
+const CANNED_RESPONSES = [
+  "Thanks for the additional info -- taking a closer look now.",
+  "Could you clarify what happened leading up to this?",
+  "We've reviewed your appeal and need a bit more evidence before deciding.",
+  "This has been approved -- you should have access again shortly.",
+  "After review, we're not able to approve this appeal.",
+];
+
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
   if (secs < 60) return `${secs}s ago`;
@@ -22,7 +30,9 @@ function AppealDetail({ appeal, onChange, onClose }) {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [blacklistReason, setBlacklistReason] = useState("");
   const canManage = hasPermission("appeals.manage");
+  const canManageBlacklist = hasPermission("blacklist.manage");
 
   const run = async (fn) => {
     setBusy(true);
@@ -38,21 +48,45 @@ function AppealDetail({ appeal, onChange, onClose }) {
   };
 
   const isMine = appeal.claimed_by_username === user?.username;
+  const bl = appeal.blacklist_status;
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-surface border border-border rounded-xl p-6 max-w-lg w-full max-h-[85vh] flex flex-col">
         <div className="flex items-start justify-between mb-2">
-          <div>
-            <h3 className="text-white font-semibold text-lg">Appeal #{appeal.id}</h3>
-            <div className="text-white/40 text-xs mt-0.5">
-              User {appeal.user_id} &middot; {timeAgo(appeal.created_at)} &middot;{" "}
-              <span className="uppercase">{appeal.status}</span>
-              {appeal.claimed_by_username && ` (claimed by ${appeal.claimed_by_username})`}
+          <div className="flex items-center gap-3">
+            {appeal.avatar_snapshot && (
+              <img src={appeal.avatar_snapshot} className="w-10 h-10 rounded-full" alt="" />
+            )}
+            <div>
+              <h3 className="text-white font-semibold text-lg">
+                {appeal.username_snapshot || `Appeal #${appeal.id}`}
+              </h3>
+              <div className="text-white/40 text-xs mt-0.5">
+                User {appeal.user_id} &middot; {timeAgo(appeal.created_at)} &middot;{" "}
+                <span className="uppercase">{appeal.status}</span>
+                {appeal.claimed_by_username && ` (claimed by ${appeal.claimed_by_username})`}
+              </div>
             </div>
           </div>
           <button onClick={onClose} className="text-white/40 hover:text-white text-sm">Close</button>
         </div>
+
+        {bl && (
+          <div
+            className={`text-xs rounded-lg p-2 mb-2 border ${
+              bl.blacklisted
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                : "bg-amber-500/10 border-amber-500/20 text-amber-300"
+            }`}
+          >
+            {bl.blacklisted ? (
+              <>Confirmed blacklisted by <strong>{bl.banned_by_username}</strong>: {bl.reason}</>
+            ) : (
+              <>⚠ This user is <strong>not currently blacklisted</strong> -- this may be a mistaken or trolling submission.</>
+            )}
+          </div>
+        )}
 
         <div className="text-white/70 text-sm bg-panel border border-border rounded-lg p-3 mb-2">
           <div className="text-white/40 text-xs mb-1">Reason</div>
@@ -95,6 +129,14 @@ function AppealDetail({ appeal, onChange, onClose }) {
             {appeal.status === "claimed" && isMine && (
               <>
                 <div className="flex gap-2 mb-2">
+                  <select
+                    onChange={(e) => { if (e.target.value) setNote(e.target.value); e.target.value = ""; }}
+                    defaultValue=""
+                    className="bg-panel border border-border rounded-lg px-2 py-2 text-xs text-white/60 outline-none"
+                  >
+                    <option value="">Quick reply...</option>
+                    {CANNED_RESPONSES.map((c) => <option key={c} value={c}>{c.slice(0, 40)}...</option>)}
+                  </select>
                   <input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -138,8 +180,38 @@ function AppealDetail({ appeal, onChange, onClose }) {
         )}
 
         {appeal.status === "approved" && (
-          <div className="text-green-400/80 text-xs bg-green-600/10 border border-green-600/20 rounded-lg p-2">
+          <div className="text-green-400/80 text-xs bg-green-600/10 border border-green-600/20 rounded-lg p-2 mb-2">
             Approved. Remember: this doesn't lift the ban automatically -- do that from the Moderation page.
+          </div>
+        )}
+
+        {canManageBlacklist && (
+          <div className="flex gap-2 pt-2 mt-2 border-t border-border">
+            {bl?.blacklisted ? (
+              <button
+                disabled={busy}
+                onClick={() => run(() => api.unblacklistFromAppeal(appeal.id))}
+                className="flex-1 px-4 py-2 text-xs rounded-lg text-white/50 hover:text-white hover:bg-white/5 disabled:opacity-40"
+              >
+                Remove from blacklist
+              </button>
+            ) : (
+              <div className="flex-1 flex gap-2">
+                <input
+                  value={blacklistReason}
+                  onChange={(e) => setBlacklistReason(e.target.value)}
+                  placeholder="Blacklist reason..."
+                  className="flex-1 bg-panel border border-border rounded-lg px-2 py-1.5 text-xs text-white outline-none focus:border-white/30"
+                />
+                <button
+                  disabled={busy || !blacklistReason.trim()}
+                  onClick={() => run(() => api.blacklistFromAppeal(appeal.id, blacklistReason))}
+                  className="px-3 py-1.5 text-xs rounded-lg text-red-300 hover:text-red-200 hover:bg-red-500/10 disabled:opacity-40"
+                >
+                  Blacklist instead
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -222,16 +294,24 @@ export default function AppealsPage() {
           <button
             key={a.id}
             onClick={() => openDetail(a.id)}
-            className="w-full text-left bg-surface border border-border rounded-lg p-3 hover:border-white/20"
+            className="w-full text-left bg-surface border border-border rounded-lg p-3 hover:border-white/20 flex gap-3 items-start"
           >
-            <div className="flex justify-between text-sm">
-              <span className="text-white">Appeal #{a.id} &middot; user {a.user_id}</span>
-              <span className="text-white/40">{timeAgo(a.created_at)}</span>
+            {a.avatar_snapshot && <img src={a.avatar_snapshot} className="w-9 h-9 rounded-full mt-0.5" alt="" />}
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between text-sm">
+                <span className="text-white">{a.username_snapshot || `Appeal #${a.id}`}</span>
+                <span className="text-white/40 shrink-0">{timeAgo(a.created_at)}</span>
+              </div>
+              <div className="text-white/50 text-sm mt-1 line-clamp-2">{a.reason}</div>
+              <div className="flex items-center gap-2 mt-1">
+                {a.claimed_by_username && (
+                  <span className="text-white/30 text-xs">Claimed by {a.claimed_by_username}</span>
+                )}
+                {a.likely_troll && (
+                  <span className="text-amber-400/70 text-xs">⚠ not blacklisted</span>
+                )}
+              </div>
             </div>
-            <div className="text-white/50 text-sm mt-1 line-clamp-2">{a.reason}</div>
-            {a.claimed_by_username && (
-              <div className="text-white/30 text-xs mt-1">Claimed by {a.claimed_by_username}</div>
-            )}
           </button>
         ))}
       </div>
