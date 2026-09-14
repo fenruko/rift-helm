@@ -114,6 +114,9 @@ export const api = {
 
   // staff management
   listStaff: () => request("/api/exec/staff"),
+  searchMembers: (q) => request("/api/exec/members/search", { params: { q } }),
+  modUserLookup: (q, guildId) => request("/api/exec/mod/user", { params: { q, guild_id: guildId } }),
+  modAction: (payload) => request("/api/exec/mod/action", { method: "POST", body: payload }),
   createStaff: (payload) => request("/api/exec/staff", { method: "POST", body: payload }),
   updateStaff: (id, payload) => request(`/api/exec/staff/${id}`, { method: "PATCH", body: payload }),
   deleteStaff: (id) => request(`/api/exec/staff/${id}`, { method: "DELETE" }),

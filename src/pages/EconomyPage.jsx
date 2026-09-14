@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import DataTable from "../components/DataTable";
+import MemberSearchInput from "../components/MemberSearchInput";
 
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
@@ -19,7 +20,6 @@ function UserSearch({ canManage }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [guildId, setGuildId] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [notice, setNotice] = useState(null);
@@ -33,7 +33,6 @@ function UserSearch({ canManage }) {
     try {
       const data = await api.economySearch(userId.trim());
       setResult(data);
-      if (data.balances[0]) setGuildId(data.balances[0].guild_id);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -48,12 +47,12 @@ function UserSearch({ canManage }) {
 
   const adjust = async (e) => {
     e.preventDefault();
-    if (!guildId || !amount) return;
+    if (!amount) return;
     setBusy(true);
     setNotice(null);
     try {
       const res = await api.economyAdjust({
-        user_id: userId.trim(), guild_id: guildId, amount: parseInt(amount, 10), reason: reason.trim(),
+        user_id: userId.trim(), guild_id: "0", amount: parseInt(amount, 10), reason: reason.trim(),
       });
       setNotice(
         res.status === "pending"
@@ -73,12 +72,9 @@ function UserSearch({ canManage }) {
     <div className="bg-surface border border-border rounded-xl p-4 mb-6">
       <div className="text-white/60 text-sm font-medium mb-3">Search a user</div>
       <form onSubmit={search} className="flex gap-2 mb-3">
-        <input
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          placeholder="Discord user ID"
-          className="flex-1 bg-panel border border-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500/50"
-        />
+        <div className="flex-1">
+          <MemberSearchInput value={userId} onChange={setUserId} placeholder="Discord ID or username" />
+        </div>
         <button
           type="submit"
           disabled={busy || !userId.trim()}
@@ -98,27 +94,16 @@ function UserSearch({ canManage }) {
           </div>
 
           {result.balances.length === 0 && (
-            <div className="text-white/30 text-sm">No economy accounts for this user.</div>
+            <div className="text-white/30 text-sm">No economy account for this user.</div>
           )}
           {result.balances.length > 0 && (
-            <DataTable
-              columns={[
-                { key: "guild_id", label: "Guild ID" },
-                { key: "balance", label: "Balance", render: (r) => r.balance.toLocaleString() },
-              ]}
-              rows={result.balances}
-            />
+            <div className="text-white text-lg font-semibold">
+              {result.balances[0].balance.toLocaleString()} <span className="text-white/40 text-xs font-normal">balance</span>
+            </div>
           )}
 
           {canManage && result.balances.length > 0 && (
             <form onSubmit={adjust} className="flex gap-2 flex-wrap items-center pt-2 border-t border-border">
-              <select
-                value={guildId}
-                onChange={(e) => setGuildId(e.target.value)}
-                className="bg-panel border border-border rounded-lg px-2 py-1.5 text-xs text-white outline-none"
-              >
-                {result.balances.map((b) => <option key={b.guild_id} value={b.guild_id}>{b.guild_id}</option>)}
-              </select>
               <input
                 type="number"
                 value={amount}

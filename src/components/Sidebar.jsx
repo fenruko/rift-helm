@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import GuideModal from "./GuideModal";
+import { api, connectExecSocket } from "../lib/api";
 
 const NAV = [
   { to: "/", label: "Overview", permission: "overview.view" },
@@ -23,7 +24,21 @@ export default function Sidebar() {
   const { user, hasPermission, logout } = useAuth();
   const [showGuide, setShowGuide] = useState(false);
   const [q, setQ] = useState("");
+  const [openAppeals, setOpenAppeals] = useState(0);
   const navigate = useNavigate();
+
+  const canSeeAppeals = hasPermission("appeals.view");
+
+  useEffect(() => {
+    if (!canSeeAppeals) return;
+    const refresh = () => api.listAppeals("open").then((a) => setOpenAppeals(a.length)).catch(() => {});
+    refresh();
+    const disconnect = connectExecSocket((msg) => {
+      if (msg.type?.startsWith("appeal_")) refresh();
+    });
+    return disconnect;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSeeAppeals]);
 
   const runSearch = (e) => {
     e.preventDefault();
@@ -66,7 +81,14 @@ export default function Sidebar() {
               }`
             }
           >
-            {item.label}
+            <span className="flex items-center justify-between">
+              {item.label}
+              {item.to === "/appeals" && openAppeals > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                  {openAppeals}
+                </span>
+              )}
+            </span>
           </NavLink>
         ))}
       </nav>

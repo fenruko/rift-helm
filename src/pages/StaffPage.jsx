@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "../components/ConfirmModal";
+import MemberSearchInput from "../components/MemberSearchInput";
 
 function PermissionEditor({ catalog, selected, onChange, disabled }) {
   const isFullAccess = selected.includes("*");
@@ -65,6 +66,7 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(existing?.role || "Staff");
   const [permissions, setPermissions] = useState(existing?.permissions || []);
+  const [discordId, setDiscordId] = useState(existing?.discord_id ? String(existing.discord_id) : "");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -75,7 +77,7 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
     setSaving(true);
     try {
       if (isEdit) {
-        const payload = { role, permissions };
+        const payload = { role, permissions, discord_id: discordId };
         if (password) payload.password = password;
         await api.updateStaff(existing.id, payload);
       } else {
@@ -84,7 +86,7 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
           setSaving(false);
           return;
         }
-        await api.createStaff({ username, password, role, permissions });
+        await api.createStaff({ username, password, role, permissions, discord_id: discordId });
       }
       onSaved();
     } catch (e) {
@@ -122,6 +124,13 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full bg-panel border border-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-white/30"
           />
+        </div>
+
+        <div className="mb-3">
+          <label className="text-white/40 text-xs block mb-1">
+            Discord account (links dashboard permissions to bot-wide commands)
+          </label>
+          <MemberSearchInput value={discordId} onChange={setDiscordId} placeholder="Discord ID or username" />
         </div>
 
         <div className="mb-4">
