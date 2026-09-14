@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "https://api.rift.baby";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://desktop-mo3r1pj.tailb9e0a9.ts.net";
 const TOKEN_KEY = "rift_staff_token";
 
 export function getToken() {
@@ -82,8 +82,17 @@ export const api = {
   unblacklistFromAppeal: (id) => request(`/api/exec/appeals/${id}/unblacklist`, { method: "POST" }),
 
   listBlacklist: () => request("/api/exec/blacklist"),
-  addBlacklist: (user_id, reason) => request("/api/exec/blacklist", { method: "POST", body: { user_id, reason } }),
+  lookupBlacklistUser: (user_id) => request(`/api/exec/blacklist/lookup/${user_id}`),
+  blacklistHistory: (user_id) => request(`/api/exec/blacklist/${user_id}/history`),
+  addBlacklist: (user_id, reason, evidence, duration) =>
+    request("/api/exec/blacklist", { method: "POST", body: { user_id, reason, evidence, duration } }),
   removeBlacklist: (user_id) => request(`/api/exec/blacklist/${user_id}`, { method: "DELETE" }),
+
+  economySearch: (user_id) => request(`/api/exec/economy/search/${user_id}`),
+  economyAdjust: (payload) => request("/api/exec/economy/adjust", { method: "POST", body: payload }),
+  economyInbox: (status = "pending") => request("/api/exec/economy/inbox", { params: { status } }),
+  economyInboxResolve: (id, decision) =>
+    request(`/api/exec/economy/inbox/${id}/resolve`, { method: "POST", body: { decision } }),
 
   // analytics
   overview: () => request("/api/exec/overview"),
@@ -138,6 +147,17 @@ export function connectExecSocket(onMessage) {
     }
   };
   return () => ws.close();
+}
+
+// Builds a URL for an appeal attachment image. <img> tags can't send an
+// Authorization header, so staff view needs the session token as a query
+// param; the public thread view uses the appeal's own share token instead.
+export function attachmentUrl(id, { threadToken } = {}) {
+  if (threadToken) {
+    return `${API_BASE}/api/appeals/attachments/${id}?token=${encodeURIComponent(threadToken)}`;
+  }
+  const staffToken = getToken();
+  return `${API_BASE}/api/appeals/attachments/${id}${staffToken ? `?staff_token=${encodeURIComponent(staffToken)}` : ""}`;
 }
 
 export { ApiError, API_BASE };

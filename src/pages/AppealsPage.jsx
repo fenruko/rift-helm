@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { api, connectExecSocket } from "../lib/api";
+import { api, connectExecSocket, attachmentUrl } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 
 const TABS = [
@@ -107,7 +107,20 @@ function AppealDetail({ appeal, onChange, onClose }) {
               className={`text-sm rounded-lg p-2 ${m.is_staff ? "bg-blue-600/10 border border-blue-600/20" : "bg-panel border border-border"}`}
             >
               <div className="text-white/40 text-xs mb-0.5">{m.author} &middot; {timeAgo(m.ts)}</div>
-              <div className="text-white/80">{m.text}</div>
+              {m.text && <div className="text-white/80">{m.text}</div>}
+              {m.attachment_ids?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  {m.attachment_ids.map((id) => (
+                    <a key={id} href={attachmentUrl(id)} target="_blank" rel="noreferrer">
+                      <img
+                        src={attachmentUrl(id)}
+                        alt="attachment"
+                        className="w-20 h-20 object-cover rounded-lg border border-border hover:border-white/30"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import GuideModal from "./GuideModal";
 
@@ -22,6 +22,17 @@ const NAV = [
 export default function Sidebar() {
   const { user, hasPermission, logout } = useAuth();
   const [showGuide, setShowGuide] = useState(false);
+  const [q, setQ] = useState("");
+  const navigate = useNavigate();
+
+  const runSearch = (e) => {
+    e.preventDefault();
+    const id = q.trim();
+    if (!id) return;
+    if (hasPermission("economy.manage")) navigate(`/economy?u=${id}`);
+    else if (hasPermission("blacklist.manage")) navigate(`/blacklist?u=${id}`);
+    setQ("");
+  };
 
   return (
     <div className="w-60 shrink-0 bg-surface border-r border-border h-screen sticky top-0 flex flex-col">
@@ -31,6 +42,15 @@ export default function Sidebar() {
         </div>
         <div className="text-white/40 text-xs mt-0.5">{user?.username}</div>
       </div>
+
+      <form onSubmit={runSearch} className="px-3 pt-3">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Look up user ID..."
+          className="w-full bg-panel border border-border rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-blue-500/50"
+        />
+      </form>
 
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {NAV.filter((item) => hasPermission(item.permission)).map((item) => (

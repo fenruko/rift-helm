@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 
 const SECTIONS = [
   {
@@ -44,7 +45,7 @@ export default function GuideModal({ onClose }) {
   const [active, setActive] = useState(0);
   const section = SECTIONS[active];
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="relative bg-surface border border-border rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl shadow-black/60">
         <div
@@ -101,6 +102,7 @@ export default function GuideModal({ onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

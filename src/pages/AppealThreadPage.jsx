@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, attachmentUrl } from "../lib/api";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -134,7 +134,20 @@ export default function AppealThreadPage() {
                   <div className="text-white/40 text-xs mb-0.5">
                     {m.is_staff ? "Staff" : "You"} &middot; {timeAgo(m.ts)}
                   </div>
-                  <div className="text-white/80">{m.text}</div>
+                  {m.text && <div className="text-white/80">{m.text}</div>}
+                  {m.attachment_ids?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                      {m.attachment_ids.map((id) => (
+                        <a key={id} href={attachmentUrl(id, { threadToken: token })} target="_blank" rel="noreferrer">
+                          <img
+                            src={attachmentUrl(id, { threadToken: token })}
+                            alt="attachment"
+                            className="w-16 h-16 object-cover rounded-lg border border-border hover:border-white/30"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
