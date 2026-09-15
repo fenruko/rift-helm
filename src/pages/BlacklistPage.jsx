@@ -106,13 +106,23 @@ export default function BlacklistPage() {
   };
 
   const remove = async (id) => {
+    if (busy) return;
     setBusy(true);
+    // Optimistically drop it from the list right away so a second click
+    // (or the list reloading mid-request) can't re-trigger a "not
+    // blacklisted" 404 that looks like the removal failed.
+    setEntries((prev) => prev?.filter((e) => e.user_id !== id) ?? prev);
     try {
       await api.removeBlacklist(id);
-      load();
     } catch (err) {
-      setError(err.message);
+      if (err.status !== 404) {
+        setError(err.message);
+      }
+      // 404 here just means it was already removed (e.g. a duplicate
+      // click) -- not a real error, so stay quiet and let load() below
+      // resync with the server as the source of truth.
     } finally {
+      load();
       setBusy(false);
     }
   };
