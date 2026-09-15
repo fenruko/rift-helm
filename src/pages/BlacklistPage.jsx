@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
+import MemberSearchInput from "../components/MemberSearchInput";
+import UserLabel from "../components/UserLabel";
 
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
@@ -138,12 +140,9 @@ export default function BlacklistPage() {
         <div className="flex gap-2 flex-wrap items-start">
           <div className="flex-1 min-w-[160px]">
             <div className="flex gap-2">
-              <input
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                placeholder="Discord user ID"
-                className="flex-1 bg-panel border border-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500/50"
-              />
+              <div className="flex-1">
+                <MemberSearchInput value={userId} onChange={setUserId} placeholder="Discord ID or username" />
+              </div>
               <button
                 type="button"
                 onClick={runLookup}
@@ -206,7 +205,7 @@ export default function BlacklistPage() {
         {entries?.map((e) => (
           <div key={e.user_id} className="bg-surface border border-border rounded-lg p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-white text-sm">{e.user_id}</div>
+              <div className="text-white text-sm"><UserLabel id={e.user_id} /></div>
               <div className="text-white/50 text-sm">{e.reason}</div>
               {e.evidence && <div className="text-white/40 text-xs mt-0.5">Evidence: {e.evidence}</div>}
               <div className="text-white/30 text-xs mt-0.5">

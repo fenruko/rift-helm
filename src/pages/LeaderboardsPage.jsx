@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import UserLabel from "../components/UserLabel";
 import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import DataTable from "../components/DataTable";
@@ -36,7 +37,7 @@ export default function LeaderboardsPage() {
           <DataTable
             columns={[
               { key: "guild_id", label: "Guild" },
-              { key: "user_id", label: "User" },
+              { key: "user_id", label: "User", render: (r) => <UserLabel id={r.user_id} /> },
               { key: "level", label: "Level" },
               { key: "xp", label: "XP" },
             ]}
@@ -50,7 +51,7 @@ export default function LeaderboardsPage() {
           <div className="px-4 py-3 border-b border-border text-white/60 text-sm font-medium">Invite leaderboard</div>
           <DataTable
             columns={[
-              { key: "user_id", label: "User" },
+              { key: "user_id", label: "User", render: (r) => <UserLabel id={r.user_id} /> },
               { key: "real", label: "Real" },
               { key: "bonus", label: "Bonus" },
               { key: "fake", label: "Fake" },

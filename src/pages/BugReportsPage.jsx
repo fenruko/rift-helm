@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api, API_BASE } from "../lib/api";
+import UserLabel from "../components/UserLabel";
 import { useAuth } from "../context/AuthContext";
 
 export default function BugReportsPage() {
@@ -49,7 +50,7 @@ export default function BugReportsPage() {
           <div key={r.id} className="bg-surface border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="text-white text-sm">
-                Reporter <span className="text-white/50">{r.reporter_user_id}</span>
+                Reporter <UserLabel id={r.reporter_user_id} />
               </div>
               <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${
                 r.status === "open" ? "bg-amber-500/10 text-amber-300" :

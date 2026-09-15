@@ -71,6 +71,7 @@ export const api = {
   uploadThreadImage: (token, image) =>
     request(`/api/appeals/thread/${token}/upload`, { method: "POST", body: { image } }),
 
+  resolveUsers: (ids) => request(`/api/exec/users/resolve`, { params: { ids: ids.join(",") } }),
   listAppeals: (status) => request("/api/exec/appeals", { params: { status } }),
   getAppeal: (id) => request(`/api/exec/appeals/${id}`),
   claimAppeal: (id) => request(`/api/exec/appeals/${id}/claim`, { method: "POST" }),

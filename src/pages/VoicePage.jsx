@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import UserLabel from "../components/UserLabel";
 import DataTable from "../components/DataTable";
 
 export default function VoicePage() {
@@ -37,7 +38,7 @@ export default function VoicePage() {
         <DataTable
           columns={[
             { key: "guild_id", label: "Guild" },
-            { key: "user_id", label: "User" },
+            { key: "user_id", label: "User", render: (r) => <UserLabel id={r.user_id} /> },
             { key: "minutes", label: "Minutes" },
           ]}
           rows={data.voice_xp_leaderboard}
