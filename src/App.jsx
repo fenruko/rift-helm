@@ -10,6 +10,7 @@ import EconomyPage from "./pages/EconomyPage";
 import ModerationPage from "./pages/ModerationPage";
 import TicketsPage from "./pages/TicketsPage";
 import AppealsPage from "./pages/AppealsPage";
+import BugReportsPage from "./pages/BugReportsPage";
 import AppealThreadPage from "./pages/AppealThreadPage";
 import BlacklistPage from "./pages/BlacklistPage";
 import VoicePage from "./pages/VoicePage";
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/moderation" element={<Protected><RequirePermission permission="moderation.view"><ModerationPage /></RequirePermission></Protected>} />
           <Route path="/tickets" element={<Protected><RequirePermission permission="tickets.view"><TicketsPage /></RequirePermission></Protected>} />
           <Route path="/appeals" element={<Protected><RequirePermission permission="appeals.view"><AppealsPage /></RequirePermission></Protected>} />
+          <Route path="/bugreports" element={<Protected><RequirePermission permission="bugreports.view"><BugReportsPage /></RequirePermission></Protected>} />
           <Route path="/blacklist" element={<Protected><RequirePermission permission="blacklist.manage"><BlacklistPage /></RequirePermission></Protected>} />
           <Route path="/voice" element={<Protected><RequirePermission permission="voice.view"><VoicePage /></RequirePermission></Protected>} />
           <Route path="/verification" element={<Protected><RequirePermission permission="verification.view"><VerificationPage /></RequirePermission></Protected>} />

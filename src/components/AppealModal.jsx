@@ -21,6 +21,7 @@ function fileToDataUrl(file) {
 }
 
 const STEPS = { ID: "id", CONFIRM: "confirm", OTP: "otp", FORM: "form", DONE: "done" };
+const MAX_IMAGES = 10;
 
 export default function AppealModal({ onClose }) {
   const [step, setStep] = useState(STEPS.ID);
@@ -82,11 +83,11 @@ export default function AppealModal({ onClose }) {
     }
   };
 
-  const handlePaste = async (e) => {
-    const file = readImageFromClipboard(e);
-    if (!file) return;
-    e.preventDefault();
-    setPasteHint(false);
+  const addFile = async (file) => {
+    if (images.length >= MAX_IMAGES) {
+      setError(`Max ${MAX_IMAGES} images.`);
+      return;
+    }
     try {
       const dataUrl = await fileToDataUrl(file);
       const { id } = await api.uploadAppealImage(verifyToken, dataUrl);
@@ -94,6 +95,19 @@ export default function AppealModal({ onClose }) {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handlePaste = (e) => {
+    const file = readImageFromClipboard(e);
+    if (!file) return;
+    e.preventDefault();
+    setPasteHint(false);
+    addFile(file);
+  };
+
+  const handleBrowse = (e) => {
+    [...e.target.files].forEach(addFile);
+    e.target.value = "";
   };
 
   const removeImage = (id) => setImages((prev) => prev.filter((i) => i.id !== id));
@@ -221,9 +235,22 @@ export default function AppealModal({ onClose }) {
                 onPaste={handlePaste}
                 onFocus={() => setPasteHint(true)}
                 rows={3}
-                placeholder="Links, extra context... you can paste (Ctrl/Cmd+V) a screenshot directly here"
+                placeholder="Links, extra context... paste (Ctrl/Cmd+V) a screenshot or use Browse below"
                 className="w-full bg-panel border border-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500/50 resize-none"
               />
+              <div className="flex items-center justify-between mt-1">
+                <label className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer">
+                  Browse images...
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    multiple
+                    onChange={handleBrowse}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-white/25 text-xs">{images.length}/{MAX_IMAGES} images</span>
+              </div>
               {pasteHint && images.length === 0 && (
                 <p className="text-white/25 text-xs mt-1">Tip: copy a screenshot, click here, then paste.</p>
               )}

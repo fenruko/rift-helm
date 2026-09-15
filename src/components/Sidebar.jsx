@@ -10,6 +10,7 @@ const NAV = [
   { to: "/moderation", label: "Moderation", permission: "moderation.view" },
   { to: "/tickets", label: "Tickets & Reports", permission: "tickets.view" },
   { to: "/appeals", label: "Ban Appeals", permission: "appeals.view" },
+  { to: "/bugreports", label: "Bug Reports", permission: "bugreports.view" },
   { to: "/blacklist", label: "Blacklist", permission: "blacklist.manage" },
   { to: "/voice", label: "Voice", permission: "voice.view" },
   { to: "/verification", label: "Verification", permission: "verification.view" },
@@ -25,9 +26,24 @@ export default function Sidebar() {
   const [showGuide, setShowGuide] = useState(false);
   const [q, setQ] = useState("");
   const [openAppeals, setOpenAppeals] = useState(0);
+  const [openBugReports, setOpenBugReports] = useState(0);
+  const [pendingEconomy, setPendingEconomy] = useState(0);
   const navigate = useNavigate();
 
   const canSeeAppeals = hasPermission("appeals.view");
+  const canSeeBugReports = hasPermission("bugreports.view");
+  const canSeeEconomyInbox = hasPermission("economy.manage");
+
+  useEffect(() => {
+    if (!canSeeEconomyInbox) return;
+    const refresh = () => api.economyInbox("pending").then((r) => setPendingEconomy(r.length)).catch(() => {});
+    refresh();
+    const disconnect = connectExecSocket((msg) => {
+      if (msg.type?.startsWith("economy_adjustment")) refresh();
+    });
+    return disconnect;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSeeEconomyInbox]);
 
   useEffect(() => {
     if (!canSeeAppeals) return;
@@ -39,6 +55,17 @@ export default function Sidebar() {
     return disconnect;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canSeeAppeals]);
+
+  useEffect(() => {
+    if (!canSeeBugReports) return;
+    const refresh = () => api.listBugReports("open").then((r) => setOpenBugReports(r.length)).catch(() => {});
+    refresh();
+    const disconnect = connectExecSocket((msg) => {
+      if (msg.type?.startsWith("bugreport_")) refresh();
+    });
+    return disconnect;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSeeBugReports]);
 
   const runSearch = (e) => {
     e.preventDefault();
@@ -83,9 +110,11 @@ export default function Sidebar() {
           >
             <span className="flex items-center justify-between">
               {item.label}
-              {item.to === "/appeals" && openAppeals > 0 && (
+              {((item.to === "/appeals" && openAppeals > 0) ||
+                (item.to === "/bugreports" && openBugReports > 0) ||
+                (item.to === "/economy" && pendingEconomy > 0)) && (
                 <span className="ml-2 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
-                  {openAppeals}
+                  {item.to === "/appeals" ? openAppeals : item.to === "/bugreports" ? openBugReports : pendingEconomy}
                 </span>
               )}
             </span>

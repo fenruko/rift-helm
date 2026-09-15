@@ -6,14 +6,15 @@ import DataTable from "../components/DataTable";
 import MemberSearchInput from "../components/MemberSearchInput";
 
 const ACTIONS = [
-  { key: "warn", label: "Warn" },
-  { key: "timeout", label: "Timeout (1h)" },
-  { key: "untimeout", label: "Remove timeout" },
-  { key: "kick", label: "Kick" },
-  { key: "ban", label: "Ban" },
+  { key: "warn", label: "Warn", perm: "moderation.warn" },
+  { key: "timeout", label: "Timeout (1h)", perm: "moderation.timeout" },
+  { key: "untimeout", label: "Remove timeout", perm: "moderation.timeout" },
+  { key: "kick", label: "Kick", perm: "moderation.kick" },
+  { key: "ban", label: "Ban", perm: "moderation.ban" },
 ];
 
 function UserActions() {
+  const { hasPermission } = useAuth();
   const [q, setQ] = useState("");
   const [profile, setProfile] = useState(null);
   const [reason, setReason] = useState("");
@@ -91,7 +92,7 @@ function UserActions() {
             className="w-full bg-panel border border-border rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-blue-500/50"
           />
           <div className="flex flex-wrap gap-2">
-            {ACTIONS.map((a) => (
+            {ACTIONS.filter((a) => hasPermission(a.perm)).map((a) => (
               <button
                 key={a.key}
                 onClick={() => act(a.key)}
@@ -137,7 +138,7 @@ export default function ModerationPage() {
     <div>
       <h1 className="text-white text-xl font-semibold mb-6">Moderation</h1>
 
-      {hasPermission("moderation.manage") && <UserActions />}
+      {hasPermission("moderation.lookup") && <UserActions />}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total warnings" value={data.warnings.total} />
