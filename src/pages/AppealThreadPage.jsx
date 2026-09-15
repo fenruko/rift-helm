@@ -46,18 +46,23 @@ export default function AppealThreadPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  const addImage = async (file) => {
+    if (!file) return;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const { id } = await api.uploadThreadImage(token, dataUrl);
+      setImages((prev) => [...prev, { id, previewUrl: dataUrl }]);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handlePaste = async (e) => {
     const items = e.clipboardData?.items || [];
     for (const item of items) {
       if (item.type.startsWith("image/")) {
         e.preventDefault();
-        try {
-          const dataUrl = await fileToDataUrl(item.getAsFile());
-          const { id } = await api.uploadThreadImage(token, dataUrl);
-          setImages((prev) => [...prev, { id, previewUrl: dataUrl }]);
-        } catch (err) {
-          setError(err.message);
-        }
+        addImage(item.getAsFile());
         return;
       }
     }
@@ -122,6 +127,19 @@ export default function AppealThreadPage() {
                 <div className="text-white/40 text-xs mb-1">Your appeal</div>
                 <div className="text-white/80">{appeal.reason}</div>
                 {appeal.evidence && <div className="text-white/60 mt-2 text-xs">{appeal.evidence}</div>}
+                {appeal.evidence_attachment_ids?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {appeal.evidence_attachment_ids.map((id) => (
+                      <a key={id} href={attachmentUrl(id, { threadToken: token })} target="_blank" rel="noreferrer">
+                        <img
+                          src={attachmentUrl(id, { threadToken: token })}
+                          alt="evidence"
+                          className="w-16 h-16 object-cover rounded-lg border border-border hover:border-white/30"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {appeal.messages.map((m, i) => (
@@ -169,7 +187,16 @@ export default function AppealThreadPage() {
                     ))}
                   </div>
                 )}
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <label className="px-3 py-2 text-sm rounded-lg bg-panel border border-border hover:border-white/30 text-white/60 cursor-pointer">
+                    📎 Attach image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }}
+                    />
+                  </label>
                   <button
                     type="submit"
                     disabled={sending || (!text.trim() && images.length === 0)}

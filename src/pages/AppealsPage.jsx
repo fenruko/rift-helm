@@ -17,6 +17,15 @@ const CANNED_RESPONSES = [
   "After review, we're not able to approve this appeal.",
 ];
 
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
   if (secs < 60) return `${secs}s ago`;
@@ -28,11 +37,31 @@ function timeAgo(ts) {
 function AppealDetail({ appeal, onChange, onClose }) {
   const { user, hasPermission } = useAuth();
   const [note, setNote] = useState("");
+  const [images, setImages] = useState([]); // {id, previewUrl}
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [blacklistReason, setBlacklistReason] = useState("");
   const canManage = hasPermission("appeals.manage");
   const canManageBlacklist = hasPermission("blacklist.manage");
+
+  const addImage = async (file) => {
+    if (!file) return;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const { id } = await api.uploadExecAppealImage(appeal.id, dataUrl);
+      setImages((prev) => [...prev, { id, previewUrl: dataUrl }]);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handlePaste = (e) => {
+    const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+    if (item) {
+      e.preventDefault();
+      addImage(item.getAsFile());
+    }
+  };
 
   const run = async (fn) => {
     setBusy(true);
@@ -100,6 +129,20 @@ function AppealDetail({ appeal, onChange, onClose }) {
           </div>
         )}
 
+        {appeal.evidence_attachment_ids?.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {appeal.evidence_attachment_ids.map((id) => (
+              <a key={id} href={attachmentUrl(id)} target="_blank" rel="noreferrer">
+                <img
+                  src={attachmentUrl(id)}
+                  alt="evidence"
+                  className="w-20 h-20 object-cover rounded-lg border border-border hover:border-white/30"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto my-2 space-y-2">
           {appeal.messages.map((m, i) => (
             <div
@@ -153,17 +196,38 @@ function AppealDetail({ appeal, onChange, onClose }) {
                   <input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Reply to the user..."
+                    onPaste={handlePaste}
+                    placeholder="Reply to the user... (paste or attach a screenshot)"
                     className="flex-1 bg-panel border border-border rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-white/30"
                   />
+                  <label className="px-3 py-2 text-sm rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+                    📎
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }}
+                    />
+                  </label>
                   <button
-                    disabled={busy || !note.trim()}
-                    onClick={() => run(async () => { await api.messageAppeal(appeal.id, note); setNote(""); })}
+                    disabled={busy || (!note.trim() && images.length === 0)}
+                    onClick={() => run(async () => {
+                      await api.messageAppeal(appeal.id, note, images.map((i) => i.id));
+                      setNote("");
+                      setImages([]);
+                    })}
                     className="px-4 py-2 text-sm rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-40"
                   >
                     Send
                   </button>
                 </div>
+                {images.length > 0 && (
+                  <div className="flex gap-2 mb-2">
+                    {images.map((img) => (
+                      <img key={img.id} src={img.previewUrl} className="w-12 h-12 object-cover rounded-lg border border-border" alt="" />
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
                     disabled={busy}

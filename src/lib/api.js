@@ -75,7 +75,8 @@ export const api = {
   getAppeal: (id) => request(`/api/exec/appeals/${id}`),
   claimAppeal: (id) => request(`/api/exec/appeals/${id}/claim`, { method: "POST" }),
   unclaimAppeal: (id) => request(`/api/exec/appeals/${id}/unclaim`, { method: "POST" }),
-  messageAppeal: (id, text) => request(`/api/exec/appeals/${id}/message`, { method: "POST", body: { text } }),
+  messageAppeal: (id, text, attachment_ids) => request(`/api/exec/appeals/${id}/message`, { method: "POST", body: { text, attachment_ids } }),
+  uploadExecAppealImage: (id, image) => request(`/api/exec/appeals/${id}/upload`, { method: "POST", body: { image } }),
   resolveAppeal: (id, decision, note) =>
     request(`/api/exec/appeals/${id}/resolve`, { method: "POST", body: { decision, note } }),
   blacklistFromAppeal: (id, reason) => request(`/api/exec/appeals/${id}/blacklist`, { method: "POST", body: { reason } }),
