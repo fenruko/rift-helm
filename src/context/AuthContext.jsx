@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
     }
     try {
       const me = await api.me();
-      setUser({ username: me.username, role: me.role, permissions: me.permissions || [] });
+      setUser({ id: me.id, username: me.username, role: me.role, permissions: me.permissions || [] });
     } catch {
       setUser(null);
     } finally {
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
   const login = async (username, password, totp_code) => {
     const res = await api.login(username, password, totp_code);
     setToken(res.token);
-    setUser({ username: res.username, role: res.role, permissions: res.permissions || [] });
+    setUser({ id: res.id, username: res.username, role: res.role, permissions: res.permissions || [] });
     return res;
   };
 

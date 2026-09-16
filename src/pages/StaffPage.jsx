@@ -61,7 +61,7 @@ function PermissionEditor({ catalog, selected, onChange, disabled }) {
   );
 }
 
-function StaffFormModal({ catalog, existing, onClose, onSaved }) {
+function StaffFormModal({ catalog, existing, currentUser, onClose, onSaved }) {
   const [username, setUsername] = useState(existing?.username || "");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(existing?.role || "Staff");
@@ -71,13 +71,21 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
 
   const isEdit = !!existing;
+  const isSelf = isEdit && currentUser && existing.id === currentUser.id;
+  const isSuperuser = (currentUser?.permissions || []).includes("*");
+  // Can only grant permissions you hold yourself -- mirrors the server-side
+  // check, so the UI doesn't even offer options that would just get 403'd.
+  const grantableCatalog = isSuperuser
+    ? catalog
+    : catalog.filter((p) => (currentUser?.permissions || []).includes(p.key));
 
   const submit = async () => {
     setError(null);
     setSaving(true);
     try {
       if (isEdit) {
-        const payload = { role, permissions, discord_id: discordId };
+        const payload = { role, discord_id: discordId };
+        if (!isSelf) payload.permissions = permissions; // self edits never send permissions
         if (password) payload.password = password;
         await api.updateStaff(existing.id, payload);
       } else {
@@ -145,7 +153,12 @@ function StaffFormModal({ catalog, existing, onClose, onSaved }) {
 
         <div className="mb-4">
           <label className="text-white/40 text-xs block mb-2">Permissions</label>
-          <PermissionEditor catalog={catalog} selected={permissions} onChange={setPermissions} />
+          <PermissionEditor catalog={grantableCatalog} selected={permissions} onChange={setPermissions} disabled={isSelf} />
+          {isSelf && (
+            <p className="text-xs text-amber-400/80 mt-1">
+              You can't edit your own permissions — ask another staff.manage holder.
+            </p>
+          )}
         </div>
 
         {error && <div className="text-red-400 text-sm mb-3">{error}</div>}
@@ -279,6 +292,7 @@ export default function StaffPage() {
         <StaffFormModal
           catalog={catalog}
           existing={editing.id ? editing : null}
+          currentUser={user}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
