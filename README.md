@@ -1,4 +1,4 @@
-# Rift Staff Dashboard (staff.rift.baby)
+# Rift Staff Dashboard (staff.rift.cool)
 
 Executive/staff dashboard frontend for the Rift bot. Talks to the bot's
 existing Quart API (`cogs/web_server.py`) over the `/api/exec/*` and
@@ -9,7 +9,7 @@ existing Quart API (`cogs/web_server.py`) over the `/api/exec/*` and
 ```bash
 npm install
 cp .env.example .env
-# edit .env -- set VITE_API_BASE to your bot's API URL (e.g. https://api.rift.baby)
+# edit .env -- set VITE_API_BASE to your bot's API URL (e.g. https://api.rift.cool)
 npm run dev
 ```
 
@@ -38,7 +38,7 @@ cd Rift/           # the bot's repo root
 python create_staff_account.py
 ```
 
-## Deploying to staff.rift.baby (GitHub Pages)
+## Deploying to staff.rift.cool (GitHub Pages)
 
 Same pattern as the public site:
 
@@ -47,7 +47,7 @@ npm run build
 # push the contents of dist/ to the gh-pages branch (or your usual deploy flow)
 ```
 
-`public/CNAME` is already set to `staff.rift.baby` and `public/404.html`
+`public/CNAME` is already set to `staff.rift.cool` and `public/404.html`
 handles client-side route refreshes the same way the main site does.
 
 **Strongly recommended:** put this behind an extra layer (Cloudflare Access,

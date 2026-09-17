@@ -31,7 +31,7 @@ function Protected({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter basename="/staff">
+      <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/appeal/:token" element={<AppealThreadPage />} />
