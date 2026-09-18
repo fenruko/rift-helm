@@ -1,3 +1,4 @@
+import DistributionChart from "../components/DistributionChart";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
@@ -238,6 +239,8 @@ export default function EconomyPage() {
         <StatCard label="Average balance" value={data.totals.average_balance.toLocaleString()} />
         <StatCard label="Richest balance" value={data.totals.richest_balance.toLocaleString()} />
       </div>
+
+      <DistributionChart title="Leading account balances" description="Top 5 accounts in the returned leaderboard. This is a snapshot, not a historical trend." valueLabel="Balance" data={data.leaderboard.slice(0, 5).map((row, index) => ({ name: `#${index + 1} · …${String(row.user_id).slice(-4)}`, value: Number(row.balance) || 0 }))} />
 
       {canManage && <UserSearch canManage={canManage} />}
       {canApprove && <ApprovalInbox />}

@@ -11,6 +11,9 @@ npm install
 cp .env.example .env
 # edit .env -- set VITE_API_BASE to your bot's API URL (e.g. https://api.rift.cool)
 npm run dev
+
+# ...or explore the UI without a bot using the in-browser mock backend:
+npm run dev:mock     # sign in as "demo", any password
 ```
 
 ## Access model
@@ -53,3 +56,36 @@ handles client-side route refreshes the same way the main site does.
 **Strongly recommended:** put this behind an extra layer (Cloudflare Access,
 an IP allowlist, or at minimum keep the domain unlisted) since it's not
 indexed (`robots: noindex`) but is still just a normal public URL otherwise.
+
+## Demo mode (no bot required)
+
+`npm run dev:mock` sets `VITE_MOCK=1`, which loads `src/lib/mockBackend.js` --
+an in-browser stand-in for the Quart API (fake guilds, economy, appeals,
+telemetry with a live-updating websocket). It only exists in the dev server:
+the `if (import.meta.env.VITE_MOCK === "1")` branch in `main.jsx` is statically
+replaced at build time, so production bundles never include it. Sign in with
+the username `demo` and any password.
+
+## Tests
+
+```bash
+npm test        # vitest + jsdom: telemetry math, mock backend routes, page smoke tests
+```
+
+## UI revamp notes
+
+- **Design system** lives in `src/index.css` (plain CSS on top of Tailwind
+  utilities): dark charcoal surfaces, mint accent, Inter/tabular numerals,
+  consistent panels, focus rings, reduced-motion support.
+- **Overview telemetry chart**: the bot's API only reports the *current*
+  snapshot (no history endpoint), so the chart accumulates up to 120 live
+  samples in this tab and clearly says so. Exportable to CSV. No invented
+  history or fake growth numbers.
+- **Distribution charts** (Economy top balances, Moderation action mix) render
+  the real API data the pages already fetched.
+- **Performance**: every page is lazy-loaded (route-level code splitting);
+  one shared websocket with exponential-backoff reconnect replaces the
+  per-component connections; charts are skipped entirely for users with
+  `prefers-reduced-motion`.
+- **Dependencies**: upgraded Vite 5 -> 6 and react-router 6 -> 7 to clear
+  published security advisories (`npm audit` is clean).

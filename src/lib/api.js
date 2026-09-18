@@ -141,19 +141,61 @@ export const api = {
     request("/api/exec/broadcast", { method: "POST", body: { message, target } }),
 };
 
-export function connectExecSocket(onMessage) {
+// One authenticated connection per tab, shared by all dashboard subscribers.
+const socketListeners = new Set();
+let execSocket = null;
+let reconnectTimer = null;
+let retryDelay = 1000;
+let socketState = "offline";
+function notifySocketState(state) {
+  socketState = state;
+  socketListeners.forEach((listener) => listener.onStatus?.(state));
+}
+function openExecSocket() {
   const token = getToken();
-  if (!token) return () => {};
-  const wsBase = API_BASE.replace(/^http/, "ws");
-  const ws = new WebSocket(`${wsBase}/ws/exec?token=${encodeURIComponent(token)}`);
+  if (!token || !socketListeners.size || execSocket) return;
+  notifySocketState("connecting");
+  const url = new URL(API_BASE || window.location.origin, window.location.origin);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  url.pathname = "/ws/exec";
+  url.search = new URLSearchParams({ token }).toString();
+  const ws = new WebSocket(url);
+  execSocket = ws;
+  ws.onopen = () => { retryDelay = 1000; notifySocketState("connected"); };
   ws.onmessage = (evt) => {
-    try {
-      onMessage(JSON.parse(evt.data));
-    } catch {
-      // ignore malformed frames
+    let message;
+    try { message = JSON.parse(evt.data); } catch { return; }
+    socketListeners.forEach(({ onMessage }) => {
+      try { onMessage(message); } catch (error) { console.error("Socket subscriber failed", error); }
+    });
+  };
+  ws.onclose = () => {
+    if (execSocket !== ws) return;
+    execSocket = null;
+    notifySocketState("offline");
+    if (socketListeners.size && getToken()) {
+      reconnectTimer = setTimeout(openExecSocket, retryDelay);
+      retryDelay = Math.min(retryDelay * 2, 30000);
     }
   };
-  return () => ws.close();
+  ws.onerror = () => ws.close();
+}
+export function connectExecSocket(onMessage, onStatus) {
+  const listener = { onMessage, onStatus };
+  socketListeners.add(listener);
+  onStatus?.(socketState);
+  openExecSocket();
+  return () => {
+    socketListeners.delete(listener);
+    if (!socketListeners.size) {
+      clearTimeout(reconnectTimer);
+      const ws = execSocket;
+      execSocket = null;
+      ws?.close();
+      socketState = "offline";
+      retryDelay = 1000;
+    }
+  };
 }
 
 // Builds a URL for an appeal attachment image. <img> tags can't send an
