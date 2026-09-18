@@ -2,14 +2,14 @@ import React from "react";
 
 export default function DataTable({ columns, rows, emptyLabel = "No data yet." }) {
   if (!rows || rows.length === 0) {
-    return <div className="text-white/30 text-sm py-6 text-center">{emptyLabel}</div>;
+    return <div className="empty-table">{emptyLabel}</div>;
   }
   return (
-    <table className="w-full text-sm">
+    <div className="table-scroll" role="region" aria-label="Data table" tabIndex={0}><table className="w-full text-sm">
       <thead>
         <tr className="text-white/40 text-xs uppercase text-left border-b border-border">
           {columns.map((c) => (
-            <th key={c.key} className="px-4 py-3">{c.label}</th>
+            <th scope="col" key={c.key} className="px-4 py-3">{c.label}</th>
           ))}
         </tr>
       </thead>
@@ -24,6 +24,6 @@ export default function DataTable({ columns, rows, emptyLabel = "No data yet." }
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }

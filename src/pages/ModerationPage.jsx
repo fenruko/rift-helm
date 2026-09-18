@@ -1,3 +1,4 @@
+import DistributionChart from "../components/DistributionChart";
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -146,6 +147,8 @@ export default function ModerationPage() {
           <StatCard key={type} label={type} value={count} sub="last 7 days" />
         ))}
       </div>
+
+      <DistributionChart title="Moderation activity" description="Action counts over the last 7 days. Compare workload across action types." valueLabel="Actions" data={Object.entries(data.action_counts).map(([name, value]) => ({ name, value: Number(value) || 0 }))} />
 
       <div className="grid md:grid-cols-2 gap-4 mb-4">
         <div className="bg-surface border border-border rounded-xl overflow-hidden">

@@ -33,24 +33,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-panel flex items-center justify-center px-4 relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.18]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-          maskImage: "radial-gradient(ellipse at center, black 0%, transparent 75%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 0%, transparent 75%)",
-        }}
-      />
-      <form onSubmit={submit} className="relative bg-surface border border-border rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-black/50">
-        <h1 className="text-white text-xl font-bold mb-1 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Rift Staff</h1>
-        <p className="text-white/40 text-sm mb-6">Sign in to the executive dashboard.</p>
+    <div className="login-page min-h-screen bg-panel flex items-center justify-center px-4 relative overflow-hidden">
+      <section className="login-story"><div className="brand-name"><div className="brand-mark">r<span>.</span></div> rift<span className="brand-tag">STAFF</span></div><h2>Great communities.<br /><span>Thoughtfully managed.</span></h2><p>Your people, your insights, your next move. One focused workspace to bring it all together.</p><div className="login-caption">THE RIFT STAFF WORKSPACE</div></section>
+      <form onSubmit={submit} className="login-form relative bg-surface border border-border rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-black/50">
+        <h1 className="text-white text-xl font-bold mb-1">Welcome back</h1>
+        <p className="text-white/40 text-sm mb-6">Sign in to your staff workspace.</p>
 
         <div className="mb-3">
-          <label className="text-white/40 text-xs block mb-1">Username</label>
+          <label htmlFor="username" className="text-white/60 text-xs block mb-1">Username</label>
           <input
+            id="username"
+            autoComplete="username"
+            required
             autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -59,8 +53,11 @@ export default function LoginPage() {
         </div>
 
         <div className="mb-3">
-          <label className="text-white/40 text-xs block mb-1">Password</label>
+          <label htmlFor="password" className="text-white/60 text-xs block mb-1">Password</label>
           <input
+            id="password"
+            autoComplete="current-password"
+            required
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -70,8 +67,14 @@ export default function LoginPage() {
 
         {needsTotp && (
           <div className="mb-3">
-            <label className="text-white/40 text-xs block mb-1">2FA code</label>
+            <label htmlFor="totp" className="text-white/60 text-xs block mb-1">2FA code</label>
             <input
+              id="totp"
+              autoComplete="one-time-code"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              required
               value={totpCode}
               onChange={(e) => setTotpCode(e.target.value)}
               placeholder="6-digit code"

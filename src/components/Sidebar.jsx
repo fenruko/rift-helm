@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Icon from "./Icon";
 import GuideModal from "./GuideModal";
 import { api, connectExecSocket } from "../lib/api";
 
 const NAV = [
-  { to: "/", label: "Overview", permission: "overview.view" },
-  { to: "/economy", label: "Economy", permission: "economy.view" },
-  { to: "/moderation", label: "Moderation", permission: "moderation.view" },
-  { to: "/tickets", label: "Tickets & Reports", permission: "tickets.view" },
-  { to: "/appeals", label: "Ban Appeals", permission: "appeals.view" },
-  { to: "/bugreports", label: "Bug Reports", permission: "bugreports.view" },
-  { to: "/blacklist", label: "Blacklist", permission: "blacklist.manage" },
-  { to: "/voice", label: "Voice", permission: "voice.view" },
-  { to: "/verification", label: "Verification", permission: "verification.view" },
-  { to: "/leaderboards", label: "Leaderboards", permission: "levels.view" },
-  { to: "/guilds", label: "Guilds", permission: "guilds.view" },
-  { to: "/logs", label: "Logs & Audit", permission: "logs.view" },
-  { to: "/bot-control", label: "Bot Control", permission: "overview.view" },
-  { to: "/staff", label: "Staff Management", permission: "staff.manage" },
+  { icon: "overview", to: "/", label: "Overview", permission: "overview.view" },
+  { icon: "economy", to: "/economy", label: "Economy", permission: "economy.view" },
+  { icon: "shield", to: "/moderation", label: "Moderation", permission: "moderation.view" },
+  { icon: "tickets", to: "/tickets", label: "Tickets & Reports", permission: "tickets.view" },
+  { icon: "message", to: "/appeals", label: "Ban Appeals", permission: "appeals.view" },
+  { icon: "bug", to: "/bugreports", label: "Bug Reports", permission: "bugreports.view" },
+  { icon: "ban", to: "/blacklist", label: "Blacklist", permission: "blacklist.manage" },
+  { icon: "voice", to: "/voice", label: "Voice", permission: "voice.view" },
+  { icon: "shield", to: "/verification", label: "Verification", permission: "verification.view" },
+  { icon: "trophy", to: "/leaderboards", label: "Leaderboards", permission: "levels.view" },
+  { icon: "guilds", to: "/guilds", label: "Guilds", permission: "guilds.view" },
+  { icon: "logs", to: "/logs", label: "Logs & Audit", permission: "logs.view" },
+  { icon: "control", to: "/bot-control", label: "Bot Control", permission: "overview.view" },
+  { icon: "users", to: "/staff", label: "Staff Management", permission: "staff.manage" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { user, hasPermission, logout } = useAuth();
   const [showGuide, setShowGuide] = useState(false);
   const [q, setQ] = useState("");
@@ -71,45 +72,42 @@ export default function Sidebar() {
     e.preventDefault();
     const id = q.trim();
     if (!id) return;
+    onClose();
     if (hasPermission("economy.manage")) navigate(`/economy?u=${id}`);
     else if (hasPermission("blacklist.manage")) navigate(`/blacklist?u=${id}`);
     setQ("");
   };
 
   return (
-    <div className="w-60 shrink-0 bg-surface border-r border-border h-screen sticky top-0 flex flex-col">
-      <div className="p-5 border-b border-border">
-        <div className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-          Rift Staff
-        </div>
-        <div className="text-white/40 text-xs mt-0.5">{user?.username}</div>
+    <aside className={`sidebar ${open ? "is-open" : ""}`} aria-label="Main navigation" onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <div className="sidebar-brand">
+        <div className="brand-mark">r<span>.</span></div>
+        <div><div className="brand-name">rift<span className="brand-tag">STAFF</span></div><div className="brand-caption">Community, in control.</div></div>
+        <button className="icon-button mobile-menu" onClick={onClose} aria-label="Close navigation"><Icon name="close" /></button>
       </div>
 
-      <form onSubmit={runSearch} className="px-3 pt-3">
+      <form onSubmit={runSearch} className="sidebar-search"><Icon name="search" size={16} />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Look up user ID..."
+          placeholder="Look up user ID…"
+          aria-label="Look up user ID"
           className="w-full bg-panel border border-border rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-blue-500/50"
         />
       </form>
 
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+      <nav className="sidebar-nav">
+        <div className="nav-section-label">WORKSPACE</div>
         {NAV.filter((item) => hasPermission(item.permission)).map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={onClose}
             end={item.to === "/"}
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive
-                  ? "bg-blue-600/15 text-white border border-blue-500/20"
-                  : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
-              }`
-            }
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
           >
             <span className="flex items-center justify-between">
-              {item.label}
+              <span className="flex items-center gap-3"><Icon name={item.icon} size={17} />{item.label}</span>
               {((item.to === "/appeals" && openAppeals > 0) ||
                 (item.to === "/bugreports" && openBugReports > 0) ||
                 (item.to === "/economy" && pendingEconomy > 0)) && (
@@ -122,22 +120,23 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      <div className="sidebar-profile"><span className="avatar">{user?.username?.slice(0, 2).toUpperCase()}</span><div><div className="text-sm text-white/90">{user?.username}</div><div className="text-xs text-white/40">{user?.role || 'Staff member'}</div></div></div>
       <div className="p-3 border-t border-border flex gap-1">
         <button
           onClick={() => setShowGuide(true)}
           className="flex-1 text-center px-3 py-2 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5"
         >
-          Guide
+          <span className="flex items-center justify-center gap-2"><Icon name="book" size={15} /> Guide</span>
         </button>
         <button
           onClick={logout}
           className="flex-1 text-center px-3 py-2 rounded-lg text-sm text-white/50 hover:text-red-300 hover:bg-red-500/10"
         >
-          Sign out
+          <span className="flex items-center justify-center gap-2"><Icon name="logout" size={15} /> Sign out</span>
         </button>
       </div>
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
-    </div>
+    </aside>
   );
 }
