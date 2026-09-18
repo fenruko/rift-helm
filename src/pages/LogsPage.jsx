@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import DataTable from "../components/DataTable";
+import DistributionChart from "../components/DistributionChart";
 
 export default function LogsPage() {
   const { hasPermission } = useAuth();
@@ -13,6 +14,21 @@ export default function LogsPage() {
     if (hasPermission("logs.view")) api.errorLogs(200).then((d) => setErrorLines(d.lines)).catch(() => {});
     if (hasPermission("audit.view")) api.auditLog(200).then(setAuditLog).catch(() => {});
   }, []);
+
+  const severityCounts = useMemo(() => {
+    const counts = { ERROR: 0, WARNING: 0, INFO: 0 };
+    for (const line of errorLines || []) {
+      const match = line.match(/\b(ERROR|WARNING|INFO)\b/);
+      if (match) counts[match[1]] += 1;
+    }
+    return Object.entries(counts).filter(([, value]) => value > 0).map(([name, value]) => ({ name, value }));
+  }, [errorLines]);
+
+  const auditByAction = useMemo(() => {
+    const totals = {};
+    for (const entry of auditLog || []) totals[entry.action] = (totals[entry.action] || 0) + 1;
+    return Object.entries(totals).map(([name, value]) => ({ name, value }));
+  }, [auditLog]);
 
   return (
     <div>
@@ -38,9 +54,29 @@ export default function LogsPage() {
       </div>
 
       {tab === "errors" && (
+        <DistributionChart
+          title="Lines by severity"
+          description="Severity levels found in the loaded log tail."
+          valueLabel="Lines"
+          height={190}
+          data={severityCounts}
+        />
+      )}
+
+      {tab === "errors" && (
         <div className="bg-surface border border-border rounded-xl p-4 font-mono text-xs text-white/60 max-h-[70vh] overflow-y-auto whitespace-pre-wrap">
           {errorLines === null ? "Loading..." : errorLines.length === 0 ? "No error log found." : errorLines.join("\n")}
         </div>
+      )}
+
+      {tab === "audit" && (
+        <DistributionChart
+          title="Entries by action"
+          description="What staff did, from the loaded audit page."
+          valueLabel="Entries"
+          height={210}
+          data={auditByAction}
+        />
       )}
 
       {tab === "audit" && (

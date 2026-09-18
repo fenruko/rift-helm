@@ -6,8 +6,8 @@ const SECTIONS = [
     title: "Getting oriented",
     icon: "🧭",
     steps: [
-      "Use the sidebar to jump between Overview, Moderation, Economy, Tickets, and more -- you'll only see pages your permissions allow.",
-      "The green ● Live badge on some pages means you're getting real-time updates without needing to refresh.",
+      "The sidebar lists every page you have permission for.",
+      "A green ● Live badge means the page updates in real time.",
     ],
   },
   {
@@ -36,7 +36,7 @@ const SECTIONS = [
     steps: [
       "The Moderation page lets you look up a user in a specific guild -- warnings, mod history, ban status, roles.",
       "Tickets & Reports shows anything users have flagged inside servers.",
-      "Bot Control is for cog reloads, maintenance mode, and restarts -- only touch this if you know what you're doing.",
+      "Bot Control handles cog reloads, maintenance mode, and restarts.",
     ],
   },
 ];
@@ -61,9 +61,8 @@ export default function GuideModal({ onClose }) {
 
         <div className="relative p-6 border-b border-border flex items-center justify-between">
           <div>
-            <div className="text-xs uppercase tracking-wide text-blue-400/70 mb-1">Staff Dashboard Guide</div>
-            <h2 className="text-white text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-              How to use everything
+            <h2 className="text-white text-xl font-bold">
+              Guide
             </h2>
           </div>
           <button onClick={onClose} className="text-white/40 hover:text-white text-sm">Close</button>

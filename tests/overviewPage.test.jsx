@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { installMockBackend } from "../src/lib/mockBackend";
@@ -30,7 +30,7 @@ describe("OverviewPage", () => {
     renderOverview();
     expect(await screen.findByText("Network telemetry")).toBeTruthy();
     expect(screen.getByText("Total guilds")).toBeTruthy();
-    expect((await screen.findByText(/sample/)).textContent).toMatch(/sample/);
+    expect((await screen.findByText(/^\d+ samples?$/)).textContent).toMatch(/sample/);
     expect(screen.getByText("Session average")).toBeTruthy();
     expect(screen.getByText("Bot uptime")).toBeTruthy();
   });
@@ -50,8 +50,9 @@ describe("DistributionChart", () => {
     const { container } = render(
       <DistributionChart title="Test chart" description="" data={[{ name: "a", value: 5 }, { name: "b", value: 9 }]} />
     );
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(container.querySelectorAll(".recharts-bar-rectangle").length).toBe(2);
+    // Recharts debounces its resize observer by 100ms, so poll instead of
+    // sleeping exactly that long.
+    await waitFor(() => expect(container.querySelectorAll(".recharts-bar-rectangle").length).toBe(2));
   });
   it("shows the empty state without data", () => {
     const { container } = render(<DistributionChart title="Empty" description="" data={[]} />);

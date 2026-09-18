@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import DataTable from "../components/DataTable";
+import DistributionChart from "../components/DistributionChart";
+import RankingChart from "../components/RankingChart";
+import { shortId } from "../components/chartTheme";
 
 export default function VerificationPage() {
   const [data, setData] = useState(null);
@@ -18,6 +21,30 @@ export default function VerificationPage() {
       <h1 className="text-white text-xl font-semibold mb-6">Verification</h1>
       <p className="text-white/40 text-sm mb-6">Ban-evasion / fingerprint match flags across all guilds.</p>
 
+      <div className="chart-grid">
+        <DistributionChart
+          title="Flags by reason"
+          description="What triggered each flag."
+          valueLabel="Flags"
+          height={210}
+          data={Object.entries(data.flags.reduce((totals, flag) => {
+            const key = flag.reason || "unknown";
+            totals[key] = (totals[key] || 0) + 1;
+            return totals;
+          }, {})).map(([name, value]) => ({ name, value }))}
+        />
+        <RankingChart
+          title="Flags by guild"
+          description="Where the flagged accounts were seen."
+          valueLabel="Flags"
+          data={Object.entries(data.flags.reduce((totals, flag) => {
+            const key = shortId(flag.guild_id);
+            totals[key] = (totals[key] || 0) + 1;
+            return totals;
+          }, {})).map(([name, value]) => ({ name, value }))}
+        />
+      </div>
+
       <div className="bg-surface border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
@@ -28,7 +55,7 @@ export default function VerificationPage() {
             {
               key: "timestamp",
               label: "When",
-              render: (r) => new Date(r.timestamp * 1000).toLocaleString(),
+              render: (r) => new Date((r.timestamp ?? r.created_at) * 1000).toLocaleString(),
             },
           ]}
           rows={data.flags}

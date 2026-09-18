@@ -2,10 +2,14 @@ import React, { useEffect, useState } from "react";
 import { api, API_BASE } from "../lib/api";
 import UserLabel from "../components/UserLabel";
 import { useAuth } from "../context/AuthContext";
+import DonutChart from "../components/DonutChart";
+import RankingChart from "../components/RankingChart";
+import { shortId } from "../components/chartTheme";
 
 export default function BugReportsPage() {
   const { hasPermission } = useAuth();
   const [reports, setReports] = useState(null);
+  const [allReports, setAllReports] = useState(null);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("open");
   const canManage = hasPermission("bugreports.manage");
@@ -15,10 +19,14 @@ export default function BugReportsPage() {
 
   useEffect(() => { load(); }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The list is filtered per status; the charts count everything.
+  useEffect(() => { api.listBugReports().then(setAllReports).catch(() => {}); }, []);
+
   const act = async (id, decision) => {
     try {
       await api.resolveBugReport(id, decision);
       load();
+      api.listBugReports().then(setAllReports).catch(() => {});
     } catch (e) {
       setError(e.message);
     }
@@ -42,6 +50,31 @@ export default function BugReportsPage() {
           <option value="all">All</option>
         </select>
       </div>
+
+      {allReports?.length > 0 && (
+        <div className="chart-grid">
+          <DonutChart
+            title="Reports by status"
+            description="Every bug report on file, not just this filter."
+            valueLabel="Reports"
+            centerLabel="Reports"
+            data={["open", "accepted", "rejected"].map((status) => ({
+              name: status.charAt(0).toUpperCase() + status.slice(1),
+              value: allReports.filter((r) => r.status === status).length,
+            }))}
+          />
+          <RankingChart
+            title="Top reporters"
+            description="Who has submitted the most reports."
+            valueLabel="Reports"
+            data={Object.entries(allReports.reduce((totals, r) => {
+              const key = shortId(r.reporter_user_id);
+              totals[key] = (totals[key] || 0) + 1;
+              return totals;
+            }, {})).map(([name, value]) => ({ name, value }))}
+          />
+        </div>
+      )}
 
       {reports.length === 0 && <div className="text-white/30 text-sm">No reports here.</div>}
 
