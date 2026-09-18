@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import UserLabel from "../components/UserLabel";
 import DataTable from "../components/DataTable";
+import DistributionChart from "../components/DistributionChart";
+import RankingChart from "../components/RankingChart";
+import { shortId } from "../components/chartTheme";
 
 export default function VoicePage() {
   const [data, setData] = useState(null);
@@ -17,6 +20,22 @@ export default function VoicePage() {
   return (
     <div>
       <h1 className="text-white text-xl font-semibold mb-6">Voice</h1>
+
+      <div className="chart-grid">
+        <DistributionChart
+          title="Listeners per session"
+          description="People currently connected to each voice channel."
+          valueLabel="Listeners"
+          height={210}
+          data={data.active_sessions.map((s) => ({ name: s.channel, value: Number(s.listeners) || 0 }))}
+        />
+        <RankingChart
+          title="Top voice minutes"
+          description="Most time in voice, from the loaded leaderboard."
+          valueLabel="Minutes"
+          data={data.voice_xp_leaderboard.slice(0, 8).map((row) => ({ name: shortId(row.user_id), value: Number(row.minutes) || 0 }))}
+        />
+      </div>
 
       <div className="bg-surface border border-border rounded-xl overflow-hidden mb-6">
         <div className="px-4 py-3 border-b border-border text-white/60 text-sm font-medium">

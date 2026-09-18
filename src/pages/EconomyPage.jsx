@@ -1,11 +1,13 @@
 import DistributionChart from "../components/DistributionChart";
-import React, { useEffect, useState } from "react";
+import DonutChart from "../components/DonutChart";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import DataTable from "../components/DataTable";
 import MemberSearchInput from "../components/MemberSearchInput";
+import { shortId } from "../components/chartTheme";
 
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
@@ -221,6 +223,14 @@ export default function EconomyPage() {
   const [error, setError] = useState(null);
   const canManage = hasPermission("economy.manage");
   const canApprove = hasPermission("economy.approve");
+  const balanceByGuild = useMemo(() => {
+    const totals = new Map();
+    for (const row of data?.leaderboard || []) {
+      const key = shortId(row.guild_id);
+      totals.set(key, (totals.get(key) || 0) + (Number(row.balance) || 0));
+    }
+    return [...totals.entries()].map(([name, value]) => ({ name, value }));
+  }, [data]);
 
   useEffect(() => {
     api.economy(50).then(setData).catch((e) => setError(e.message));
@@ -240,7 +250,21 @@ export default function EconomyPage() {
         <StatCard label="Richest balance" value={data.totals.richest_balance.toLocaleString()} />
       </div>
 
-      <DistributionChart title="Leading account balances" description="Top 5 accounts in the returned leaderboard. This is a snapshot, not a historical trend." valueLabel="Balance" data={data.leaderboard.slice(0, 5).map((row, index) => ({ name: `#${index + 1} · …${String(row.user_id).slice(-4)}`, value: Number(row.balance) || 0 }))} />
+      <div className="chart-grid">
+        <DistributionChart
+          title="Leading account balances"
+          description="Top 5 balances in the loaded leaderboard."
+          valueLabel="Balance"
+          data={data.leaderboard.slice(0, 5).map((row, index) => ({ name: `#${index + 1} · ${shortId(row.user_id)}`, value: Number(row.balance) || 0 }))}
+        />
+        <DonutChart
+          title="Balance by guild"
+          description="Share of the balances loaded in this view."
+          valueLabel="Balance"
+          centerLabel="Loaded"
+          data={balanceByGuild}
+        />
+      </div>
 
       {canManage && <UserSearch canManage={canManage} />}
       {canApprove && <ApprovalInbox />}

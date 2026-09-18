@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "../components/ConfirmModal";
+import RankingChart from "../components/RankingChart";
 
 export default function GuildsPage() {
   const { hasPermission } = useAuth();
@@ -35,6 +36,14 @@ export default function GuildsPage() {
           className="bg-surface border border-border rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-white/30 w-64"
         />
       </div>
+
+      <RankingChart
+        title="Members by guild"
+        description="Member counts across the servers the bot is in."
+        valueLabel="Members"
+        maxItems={10}
+        data={guilds.map((g) => ({ name: g.name, value: Number(g.member_count) || 0 }))}
+      />
 
       <div className="bg-surface border border-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">

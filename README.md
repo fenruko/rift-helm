@@ -81,8 +81,18 @@ npm test        # vitest + jsdom: telemetry math, mock backend routes, page smok
   snapshot (no history endpoint), so the chart accumulates up to 120 live
   samples in this tab and clearly says so. Exportable to CSV. No invented
   history or fake growth numbers.
-- **Distribution charts** (Economy top balances, Moderation action mix) render
-  the real API data the pages already fetched.
+- **Charts on every page**: a small chart kit (`src/components/ChartPanel.jsx`,
+  `DistributionChart`, `RankingChart`, `StackedBarChart`, `DonutChart`, shared
+  styling in `chartTheme.js`) renders the data each page already fetches —
+  action mix and moderator workload on Moderation, balance split on Economy,
+  ticket/modmail volume and report statuses, appeal backlog age, bug-report
+  statuses and top reporters, blacklist entry types, voice listeners and
+  minutes, verification flag reasons and guilds, XP/invites on Leaderboards,
+  guild sizes, log severity and audit actions, 2FA coverage on Staff.
+  Charts with no data show a plain empty state instead of an empty canvas.
+- **Copy**: page headings are just the page name — no eyebrow lines, all-caps
+  kickers, taglines or marketing one-liners. Chart subtitles state what the
+  numbers are and nothing more.
 - **Performance**: every page is lazy-loaded (route-level code splitting);
   one shared websocket with exponential-backoff reconnect replaces the
   per-component connections; charts are skipped entirely for users with

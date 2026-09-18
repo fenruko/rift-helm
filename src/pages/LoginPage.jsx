@@ -34,10 +34,10 @@ export default function LoginPage() {
 
   return (
     <div className="login-page min-h-screen bg-panel flex items-center justify-center px-4 relative overflow-hidden">
-      <section className="login-story"><div className="brand-name"><div className="brand-mark">r<span>.</span></div> rift<span className="brand-tag">STAFF</span></div><h2>Great communities.<br /><span>Thoughtfully managed.</span></h2><p>Your people, your insights, your next move. One focused workspace to bring it all together.</p><div className="login-caption">THE RIFT STAFF WORKSPACE</div></section>
+      <section className="login-story"><div className="brand-name"><div className="brand-mark">r<span>.</span></div> rift<span className="brand-tag">STAFF</span></div><h2>Staff dashboard</h2><p>Moderation, economy, appeals, tickets and bot control for the Rift bot.</p></section>
       <form onSubmit={submit} className="login-form relative bg-surface border border-border rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-black/50">
-        <h1 className="text-white text-xl font-bold mb-1">Welcome back</h1>
-        <p className="text-white/40 text-sm mb-6">Sign in to your staff workspace.</p>
+        <h1 className="text-white text-xl font-bold mb-1">Sign in</h1>
+        <p className="text-white/40 text-sm mb-6">Staff accounts only.</p>
 
         <div className="mb-3">
           <label htmlFor="username" className="text-white/60 text-xs block mb-1">Username</label>

@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import MemberSearchInput from "../components/MemberSearchInput";
 import UserLabel from "../components/UserLabel";
+import DonutChart from "../components/DonutChart";
+import RankingChart from "../components/RankingChart";
 
 function timeAgo(ts) {
   const secs = Math.floor(Date.now() / 1000 - ts);
@@ -196,6 +198,31 @@ export default function BlacklistPage() {
           Blacklist
         </button>
       </form>
+
+      {entries?.length > 0 && (
+        <div className="chart-grid">
+          <DonutChart
+            title="Entry types"
+            description="Permanent blocks vs blocks with an expiry."
+            valueLabel="Entries"
+            centerLabel="Entries"
+            data={[
+              { name: "Permanent", value: entries.filter((e) => !e.duration_label).length },
+              { name: "Timed", value: entries.filter((e) => e.duration_label).length },
+            ]}
+          />
+          <RankingChart
+            title="Added by"
+            description="Staff members with the most blacklist entries."
+            valueLabel="Entries"
+            data={Object.entries(entries.reduce((totals, e) => {
+              const key = e.banned_by_username || "unknown";
+              totals[key] = (totals[key] || 0) + 1;
+              return totals;
+            }, {})).map(([name, value]) => ({ name, value }))}
+          />
+        </div>
+      )}
 
       {error && <div className="text-red-400 text-sm mb-3">{error}</div>}
       {!entries && !error && <div className="text-white/40 text-sm">Loading...</div>}

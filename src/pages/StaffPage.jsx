@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "../components/ConfirmModal";
 import MemberSearchInput from "../components/MemberSearchInput";
+import DonutChart from "../components/DonutChart";
 
 function PermissionEditor({ catalog, selected, onChange, disabled }) {
   const isFullAccess = selected.includes("*");
@@ -229,6 +230,19 @@ export default function StaffPage() {
           + New staff account
         </button>
       </div>
+
+      {!loading && staff.length > 0 && (
+        <DonutChart
+          title="2FA coverage"
+          description="Staff accounts with a TOTP secret enabled."
+          valueLabel="Accounts"
+          centerLabel="Accounts"
+          data={[
+            { name: "2FA enabled", value: staff.filter((s) => s.totp_enabled).length },
+            { name: "No 2FA", value: staff.filter((s) => !s.totp_enabled).length },
+          ]}
+        />
+      )}
 
       {loading && <div className="text-white/40 text-sm">Loading...</div>}
       {error && <div className="text-red-400 text-sm mb-4">{error}</div>}

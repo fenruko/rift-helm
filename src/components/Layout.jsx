@@ -20,10 +20,9 @@ export default function Layout({ children }) {
             <button className="icon-button mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-expanded={menuOpen}><Icon name="menu" /></button>
             <span className="text-white/40">Workspace</span><span className="text-white/20">/</span><span className="capitalize">{page}</span>
           </div>
-          <div className="flex items-center gap-4"><span className="workspace-label">STAFF CONSOLE</span><span className="avatar" title={user?.username}>{user?.username?.slice(0, 2).toUpperCase() || 'ST'}</span></div>
+          <div className="flex items-center gap-4"><span className="text-white/40 text-xs">{user?.role || "Staff"}</span><span className="avatar" title={user?.username}>{user?.username?.slice(0, 2).toUpperCase() || 'ST'}</span></div>
         </header>
         <main id="main-content" className="page-content" key={pathname}>{children}</main>
-        <footer className="workspace-footer"><span>Rift <span className="text-white/25">/</span> Staff workspace</span><span>Built for your community.</span></footer>
       </div>
     </div>
   );
