@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { api, connectExecSocket, attachmentUrl } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import DistributionChart from "../components/DistributionChart";
 
 const TABS = [
   { key: null, label: "Open", filterStatus: "open" },
@@ -24,6 +25,26 @@ function fileToDataUrl(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+const AGE_BUCKETS = [
+  { label: "Under 1h", max: 3600 },
+  { label: "1-24h", max: 86400 },
+  { label: "1-7d", max: 604800 },
+  { label: "Over 7d", max: Infinity },
+];
+
+// Where the queue stands: how long the appeals in the current tab have
+// been sitting there.
+function ageBuckets(appeals) {
+  const rows = AGE_BUCKETS.map((bucket) => ({ name: bucket.label, value: 0 }));
+  const now = Date.now() / 1000;
+  for (const appeal of appeals) {
+    const age = Math.max(0, now - (Number(appeal.created_at) || now));
+    const index = Math.max(0, AGE_BUCKETS.findIndex((bucket) => age < bucket.max));
+    rows[index].value += 1;
+  }
+  return rows;
 }
 
 function timeAgo(ts) {
@@ -327,6 +348,8 @@ export default function AppealsPage() {
     return disconnect;
   }, [load]);
 
+  const backlog = useMemo(() => ageBuckets(appeals || []), [appeals]);
+
   const openDetail = async (id) => {
     const full = await api.getAppeal(id);
     setSelected(full);
@@ -359,6 +382,16 @@ export default function AppealsPage() {
           </button>
         ))}
       </div>
+
+      {appeals?.length > 0 && (
+        <DistributionChart
+          title="Backlog by age"
+          description={`How long the ${appeals.length} appeals in this view have been waiting.`}
+          valueLabel="Appeals"
+          height={190}
+          data={backlog}
+        />
+      )}
 
       {error && <div className="text-red-400 text-sm mb-3">{error}</div>}
       {!appeals && !error && <div className="text-white/40 text-sm">Loading...</div>}

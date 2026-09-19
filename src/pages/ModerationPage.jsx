@@ -1,4 +1,7 @@
 import DistributionChart from "../components/DistributionChart";
+import RankingChart from "../components/RankingChart";
+import StackedBarChart from "../components/StackedBarChart";
+import { CHART_COLORS, shortId } from "../components/chartTheme";
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -144,38 +147,51 @@ export default function ModerationPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total warnings" value={data.warnings.total} />
         {Object.entries(data.action_counts).slice(0, 3).map(([type, count]) => (
-          <StatCard key={type} label={type} value={count} sub="last 7 days" />
+          <StatCard key={type} label={type.charAt(0).toUpperCase() + type.slice(1)} value={count} sub="Last 7 days" />
         ))}
       </div>
 
-      <DistributionChart title="Moderation activity" description="Action counts over the last 7 days. Compare workload across action types." valueLabel="Actions" data={Object.entries(data.action_counts).map(([name, value]) => ({ name, value: Number(value) || 0 }))} />
+      <div className="chart-grid">
+        <DistributionChart
+          title="Actions by type"
+          description="Every recorded action over the last 7 days."
+          valueLabel="Actions"
+          data={Object.entries(data.action_counts).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value: Number(value) || 0 }))}
+        />
+        <StackedBarChart
+          title="Moderator workload"
+          description="Actions per moderator, split by type."
+          valueLabel="Last 7 days"
+          data={data.top_moderators.map((m) => ({ ...m, name: m.moderator_id }))}
+          series={[
+            { key: "warns", label: "Warns", color: CHART_COLORS[0] },
+            { key: "mutes", label: "Mutes", color: CHART_COLORS[1] },
+            { key: "kicks", label: "Kicks", color: CHART_COLORS[3] },
+            { key: "bans", label: "Bans", color: CHART_COLORS[4] },
+          ]}
+        />
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mb-4">
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-border text-white/60 text-sm font-medium">Top moderators</div>
-          <DataTable
-            columns={[
-              { key: "moderator_id", label: "Moderator" },
-              { key: "bans", label: "Bans" },
-              { key: "kicks", label: "Kicks" },
-              { key: "mutes", label: "Mutes" },
-              { key: "warns", label: "Warns" },
-              { key: "total", label: "Total" },
-            ]}
-            rows={data.top_moderators}
-          />
-        </div>
+      <RankingChart
+        title="Warnings by guild"
+        description="Warnings issued per guild over the last 7 days."
+        valueLabel="Warnings"
+        data={data.warnings.top_guilds.map((g) => ({ name: shortId(g.guild_id), value: Number(g.count) || 0 }))}
+      />
 
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-border text-white/60 text-sm font-medium">Warnings by guild</div>
-          <DataTable
-            columns={[
-              { key: "guild_id", label: "Guild ID" },
-              { key: "count", label: "Warnings" },
-            ]}
-            rows={data.warnings.top_guilds}
-          />
-        </div>
+      <div className="bg-surface border border-border rounded-xl overflow-hidden mb-4">
+        <div className="px-4 py-3 border-b border-border text-white/60 text-sm font-medium">Top moderators</div>
+        <DataTable
+          columns={[
+            { key: "moderator_id", label: "Moderator" },
+            { key: "bans", label: "Bans" },
+            { key: "kicks", label: "Kicks" },
+            { key: "mutes", label: "Mutes" },
+            { key: "warns", label: "Warns" },
+            { key: "total", label: "Total" },
+          ]}
+          rows={data.top_moderators}
+        />
       </div>
 
       <div className="bg-surface border border-border rounded-xl overflow-hidden mb-4">

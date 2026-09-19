@@ -4,6 +4,9 @@ import UserLabel from "../components/UserLabel";
 import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import DataTable from "../components/DataTable";
+import RankingChart from "../components/RankingChart";
+import StackedBarChart from "../components/StackedBarChart";
+import { CHART_COLORS, shortId } from "../components/chartTheme";
 
 export default function LeaderboardsPage() {
   const { hasPermission } = useAuth();
@@ -22,6 +25,33 @@ export default function LeaderboardsPage() {
   return (
     <div>
       <h1 className="text-white text-xl font-semibold mb-6">Leaderboards</h1>
+
+      {(levels || invites) && (
+        <div className="chart-grid">
+          {levels && (
+            <RankingChart
+              title="XP leaders"
+              description="Top accounts from the loaded level leaderboard."
+              valueLabel="XP"
+              data={levels.slice(0, 8).map((row) => ({ name: shortId(row.user_id), value: Number(row.xp) || 0 }))}
+            />
+          )}
+          {invites && (
+            <StackedBarChart
+              title="Invite breakdown"
+              description="Real, bonus, fake and left invites per member."
+              valueLabel="Top 8 invitees"
+              data={invites.slice(0, 8).map((row) => ({ ...row, name: shortId(row.user_id) }))}
+              series={[
+                { key: "real", label: "Real", color: CHART_COLORS[0] },
+                { key: "bonus", label: "Bonus", color: CHART_COLORS[1] },
+                { key: "fake", label: "Fake", color: CHART_COLORS[3] },
+                { key: "left", label: "Left", color: CHART_COLORS[4] },
+              ]}
+            />
+          )}
+        </div>
+      )}
 
       {giveaways && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

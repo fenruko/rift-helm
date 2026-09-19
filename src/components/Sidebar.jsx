@@ -82,7 +82,7 @@ export default function Sidebar({ open, onClose }) {
     <aside className={`sidebar ${open ? "is-open" : ""}`} aria-label="Main navigation" onKeyDown={(e) => e.key === "Escape" && onClose()}>
       <div className="sidebar-brand">
         <div className="brand-mark">r<span>.</span></div>
-        <div><div className="brand-name">rift<span className="brand-tag">STAFF</span></div><div className="brand-caption">Community, in control.</div></div>
+        <div><div className="brand-name">rift<span className="brand-tag">STAFF</span></div></div>
         <button className="icon-button mobile-menu" onClick={onClose} aria-label="Close navigation"><Icon name="close" /></button>
       </div>
 
@@ -97,7 +97,6 @@ export default function Sidebar({ open, onClose }) {
       </form>
 
       <nav className="sidebar-nav">
-        <div className="nav-section-label">WORKSPACE</div>
         {NAV.filter((item) => hasPermission(item.permission)).map((item) => (
           <NavLink
             key={item.to}
