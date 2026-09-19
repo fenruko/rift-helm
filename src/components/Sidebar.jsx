@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "./Icon";
 import GuideModal from "./GuideModal";
 import { api, connectExecSocket } from "../lib/api";
+import { BOT_LOGO_URL } from "../lib/brand";
 
 const NAV = [
   { icon: "overview", to: "/", label: "Overview", permission: "overview.view" },
@@ -81,7 +82,7 @@ export default function Sidebar({ open, onClose }) {
   return (
     <aside className={`sidebar ${open ? "is-open" : ""}`} aria-label="Main navigation" onKeyDown={(e) => e.key === "Escape" && onClose()}>
       <div className="sidebar-brand">
-        <div className="brand-mark">r<span>.</span></div>
+        <img className="brand-logo" src={BOT_LOGO_URL} alt="Rift bot logo" />
         <div><div className="brand-name">rift<span className="brand-tag">STAFF</span></div></div>
         <button className="icon-button mobile-menu" onClick={onClose} aria-label="Close navigation"><Icon name="close" /></button>
       </div>

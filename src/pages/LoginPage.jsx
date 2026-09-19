@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AppealModal from "../components/AppealModal";
+import { BOT_LOGO_URL } from "../lib/brand";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -34,7 +35,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-page min-h-screen bg-panel flex items-center justify-center px-4 relative overflow-hidden">
-      <section className="login-story"><div className="brand-name"><div className="brand-mark">r<span>.</span></div> rift<span className="brand-tag">STAFF</span></div><h2>Staff dashboard</h2><p>Moderation, economy, appeals, tickets and bot control for the Rift bot.</p></section>
+      <section className="login-story"><div className="brand-name"><img className="brand-logo" src={BOT_LOGO_URL} alt="Rift bot logo" /> rift<span className="brand-tag">STAFF</span></div><h2>Staff dashboard</h2><p>Moderation, economy, appeals, tickets and bot control for the Rift bot.</p></section>
       <form onSubmit={submit} className="login-form relative bg-surface border border-border rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-black/50">
         <h1 className="text-white text-xl font-bold mb-1">Sign in</h1>
         <p className="text-white/40 text-sm mb-6">Staff accounts only.</p>
